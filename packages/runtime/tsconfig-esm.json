@@ -1,9 +1,0 @@
-{
-	"extends": "../../tsconfig.json",
-	"compilerOptions": {
-		"rootDirs": ["./src", "../parser/src"],
-		"outDir": "../../runtime/esm",
-		"sourceMap": false
-	},
-	"include": ["src/**/*.mts"]
-}

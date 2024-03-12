@@ -81,6 +81,7 @@ Click [here](https://codesandbox.io/s/typesafe-i18n-demo-qntgqy?file=/index.ts) 
 - [**Formatters**](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/formatters) - how to format dates and numbers
 - [**Switch-Case**](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/runtime#switch-case) - how to output different words depending on an argument
 - [**Locale-detection**](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/detectors) - how to detect an user's locale
+- [**Utility functions**](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/utils) - useful utility functions
 - [**Integrations**](#integration-with-other-services) - how to integrate other i18n services
 - [**Sizes**](#sizes) - how much does `typesafe-i18n` add to your bundle size
 - [**Performance**](#performance) - how efficient is `typesafe-i18n` implemented
@@ -217,6 +218,8 @@ The `typesafe-i18n` package allows us to be 100% typesafe for our translation fu
 
 `typesafe-i18n` comes with an API that allows other services to read and update translations. You can connect other services by using the [`importer`](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/importer) and [`exporter`](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/exporter) functionality.
 
+There also exists an official plugin for [Inlang](https://inlang.com/). It allows you to use `typesafe-i18n` together with the tooling Inlang provides. You can find it [here](https://github.com/ivanhofer/inlang-plugin-typesafe-i18n).
+
 <!-- ------------------------------------------------------------------------------------------ -->
 <!-- ------------------------------------------------------------------------------------------ -->
 <!-- ------------------------------------------------------------------------------------------ -->
@@ -230,18 +233,18 @@ The footprint of the `typesafe-i18n` package is smaller compared to other existi
 
 These parts are bundled into the [core functions](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/runtime#usage). The sizes of the core functionalities are:
 
-- [i18nString](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/runtime#i18nString): 956 bytes gzipped
-- [i18nObject](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/runtime#i18nObject): 1098 bytes gzipped
-- [i18n](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/runtime#i18n): 1131 bytes gzipped
+- [i18nString](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/runtime#i18nString): 948 bytes gzipped
+- [i18nObject](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/runtime#i18nObject): 1089 bytes gzipped
+- [i18n](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/runtime#i18n): 1119 bytes gzipped
 
 Apart from that there can be a small overhead depending on which utilities and wrappers you use.
 
 There also exists a useful wrapper for some frameworks:
-- [`typesafe-i18n` angular-service](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/adapter-angular): 1405 bytes gzipped
-- [`typesafe-i18n` react-context](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/adapter-react): 1585 bytes gzipped
-- [`typesafe-i18n` solid-context](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/adapter-solid): 1417 bytes gzipped
-- [`typesafe-i18n` svelte-store](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/adapter-svelte): 1355 bytes gzipped
-- [`typesafe-i18n` vue-plugin](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/adapter-vue): 1265 bytes gzipped
+- [`typesafe-i18n` angular-service](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/adapter-angular): 1230 bytes gzipped
+- [`typesafe-i18n` react-context](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/adapter-react): 1602 bytes gzipped
+- [`typesafe-i18n` solid-context](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/adapter-solid): 1403 bytes gzipped
+- [`typesafe-i18n` svelte-store](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/adapter-svelte): 1342 bytes gzipped
+- [`typesafe-i18n` vue-plugin](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/adapter-vue): 1256 bytes gzipped
 
 
 <!-- ------------------------------------------------------------------------------------------ -->
@@ -286,6 +289,11 @@ If you use `typesafe-i18n` you will get a smaller bundle compared to other i18n 
 
 ---
 Dou you still have some questions? Reach out to us via [Github Discussions](https://github.com/ivanhofer/typesafe-i18n/discussions) or on [Discord](https://discord.gg/T27AHfaADK).
+
+---
+### Calling `LL.key()` renders an empty string
+
+You probably forgot to [load the locale](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/generator#loading-locales) first before using it. Calling `loadLocaleAsync('en')` or `loadAllLocales()` will fix it.
 
 ---
 ### Installing `typesafe-i18n` fails
@@ -409,79 +417,34 @@ export default en
 <p>
 ```
 
+---
+
+### How can I have translated validation messages?
+
+Validation libraries like `zod`, `yup`, `joi` etc. usually provide a way to define custom error messages. You can use `typesafe-i18n` to translate these messages.
+
+But you need to create the validation schema dynamically, after you have initialized the `LL` object ([]`i18nObject`](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/runtime#i18nObject)).
+
+You can do that like this by passing the `LL` object to a function that returns the validation schema:
+
+```ts
+import { z } from 'zod'
+import type { TranslationFunctions } from './i18n/i18n-types'
+
+export const createLoginSchema = (LL: TranslationFunctions) => z.object({
+    email: z.string().min(1, LL.validation.emptyField()).email(LL.validation.invalidEmail()),
+    password: z.string().min(1, LL.validation.emptyField()),
+})
+```
 
 ---
+
 ### How do I render a component inside a Translation?
 
-By default `typesafe-i18n` at this time does not provide such a functionality. But you could easily write a function like this:
+By default `typesafe-i18n` at this time does not provide such a functionality. Basically you will need to write a function that splits the translated message and renders a component between the parts. You can define your split characters yourself but you would always need to make sure you add them in any translation since `typesafe-i18n` doesn't provide any typesafety for these characters (yet).
 
-```jsx
-import { LocalizedString } from 'typesafe-i18n'
-
-// create a component that handles the translated message
-
-interface WrapTranslationPropsType {
-   message: LocalizedString,
-   renderComponent: (messagePart: LocalizedString) => JSX.Element
-}
-
-export function WrapTranslation({ message, renderComponent }: WrapTranslationPropsType) {
-   // define a split character, in this case '<>'
-   let [prefix, infix, postfix] = message.split('<>') as LocalizedString[]
-
-   // render infix only if the message doesn't have any split characters
-   if (!infix && !postfix) {
-      infix = prefix
-      prefix = '' as LocalizedString
-   }
-
-   return <>
-      {prefix}
-      {renderComponent(infix)}
-      {prefix}
-   </>
-}
-
-// your translations would look something like this
-
-const en = {
-   'WELCOME': 'Hi {name:string}, click <>here<> to create your first project'
-   'LOGOUT': 'Logout'
-}
-
-export default en
-
-
-// create a wrapper for a component for easier usage
-
-interface WrappedButtonPropsType {
-   message: LocalizedString,
-   onClick: () => void,
-}
-
-export function WrappedButton({ message, onClick }: WrappedButtonPropsType) {
-   return <WrapTranslation
-      message={message}
-      renderComponent={(infix) => <button onClick={onClick}>{infix}</button>} />
-}
-
-// use it inside your application
-
-export function App() {
-   return <>
-      <header>
-         <WrappedButton message={LL.LOGOUT()} onClick={() => alert('do logout')}>
-      </header>
-      <main>
-         <WrappedButton message={LL.WELCOME({ name: 'John' })} onClick={() => alert('clicked')}>
-      </main>
-   <>
-}
-
-```
-> This is an example written for a react application, but this concept can be used with any kind of framework.
-
-Basically you will need to write a function that splits the translated message and renders a component between the parts. You can define your split characters yourself but you would always need to make sure you add them in any translation since `typesafe-i18n` doesn't provide any typesafety for these characters (yet).
+ - [example for `react`](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/adapter-react#how-do-i-render-a-component-inside-a-translation)
+ - [example for `svelte`](https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/adapter-svelte#how-do-i-render-a-component-inside-a-translation)
 
 ---
 
@@ -527,11 +490,12 @@ Your locale translation files can be any kind of JavaScript object. So you can m
    export default en_US
    ```
 
-   > If you are using nested translations, you probably need a function like [`lodash/merge`](https://lodash.com/docs/4.17.15#merge) to make a deep merge of your translations.
+   > If you are using nested translations, you should use the provided `extendDictionary` function that uses [`just-extend`](https://github.com/angus-c/just#just-extend) under the hood.
    > ```ts
-   > import { merge } from 'lodash'
+   > import { extendDictionary } from '../i18n-utils'
+   > import en from '../en' // import translations from 'en' locale
    >
-   > const en_US: Translation = deepMerge(en, {
+   > const en_US = extendDictionary(en, {
    >    labels: {
    >       color: "color" // override specific translations
    >    }

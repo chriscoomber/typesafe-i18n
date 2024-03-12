@@ -1,6 +1,0 @@
-.husky/** -linguist-detectable
-**/example/** -linguist-detectable
-**/examples/** -linguist-detectable
-packages/generator/test/generated/** linguist-generated
-website/** -linguist-detectable
-.size-limit.js linguist-vendored
