@@ -21085,7 +21085,7 @@ var createLogger = (console2, throwOnError = false) => ({
 var logger = createLogger(console);
 
 // ../version.ts
-var version = "5.26.3";
+var version = "5.26.2";
 
 // ../config/src/config.mts
 import { resolve as resolve2 } from "path";
