@@ -133,7 +133,10 @@ type ConstructString<Params extends unknown[]> = Params extends []
 	? Params
 	: `${string}`
 
-export type RequiredParams<Params extends string> = ConstructString<Permutation<Params>>
+// PATCH START
+// export type RequiredParams<Params extends string> = ConstructString<Permutation<Params>>
+export type RequiredParams<Params extends string> = string
+// PATCH END
 
 // --------------------------------------------------------------------------------------------------------------------
 // implementation -----------------------------------------------------------------------------------------------------
